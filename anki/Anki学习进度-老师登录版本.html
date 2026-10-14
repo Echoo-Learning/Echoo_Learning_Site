@@ -91,7 +91,7 @@ function showLearners() {
     ${learners.map((l) => `<div class="card"><div class="row" style="justify-content:space-between"><b style="font-size:18px">${esc(l.name)}</b>
       <span class="mute">最近活跃：${fmtTime(l.last_active)} · 状态：${esc(l.status)}</span></div>
       <div class="link">${esc(linkOf(l))}</div>
-      <div class="row"><button class="ghost" data-copy="${l.id}">复制学生链接</button><button data-open="${l.id}">进入管理</button></div></div>`).join('') || '<p class="mute">还没有学生。运行导入程序会自动创建 Augie；也可以在下面新增。</p>'}
+      <div class="row"><button class="ghost" data-copy="${l.id}">复制学生链接</button><button data-open="${l.id}">进入管理</button></div></div>`).join('') || '<p class="mute">还没有学生。运行导入程序会自动创建 Leo；也可以在下面新增。</p>'}
     ${MOCK ? '' : `<h2>新增学生</h2><div class="card row"><input id="nn" placeholder="学生名字" maxlength="40"><button id="add">新增并生成学习码</button><span id="addmsg" class="mute"></span></div>`}
     <p class="mute">学生链接 = 学生的“钥匙”，不要贴到公开的地方。</p>`;
   $('#lo')?.addEventListener('click', logout);

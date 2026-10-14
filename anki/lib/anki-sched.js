@@ -1,5 +1,5 @@
-// Anki 旧调度（SM-2）的复刻，参数 = Augie 的 Anki 里带出来的 "Default" 预设。
-// 【临时测试系统】按我对 Anki v3 规则的理解实现，并用 Augie 真实答题记录做过一致性检验（见 test/）。
+// Anki 旧调度（SM-2）的复刻，参数 = Leo 的 Anki 里带出来的 "Default" 预设。
+// 【临时测试系统】按我对 Anki v3 规则的理解实现，并用 Leo 真实答题记录做过一致性检验（见 test/）。
 // 不是 Anki 源码的逐行翻译；与 Anki 有出入的地方写在 DEVIATIONS 里。
 //
 // 卡片字段（同 Anki cards 表）：
