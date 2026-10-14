@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light">
+<title>标记单词结果 · 老师登录版本</title>
+<style>
+:root{
+  --paper:#f4f5f8; --panel:#ffffff; --ink:#181c24; --muted:#5c6470; --border:#dfe3ea;
+  --accent:#0a7f8c; --accent-bg:#e2f5f6; --accent-ink:#065c66;
+  --mark-bg:#fff1a8; --danger:#c8391f; --danger-bg:#fdecea;
+  --ok:#047857; --ok-bg:#ecfdf5;
+  --sans:-apple-system,'Segoe UI','Microsoft YaHei',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans)}
+body{padding:0 16px 60px}
+.wrap{max-width:980px;margin:0 auto}
+button,select,input{font:inherit}
+.btn{border:1px solid var(--border);background:var(--panel);color:var(--ink);border-radius:8px;
+  padding:6px 11px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#eef0f4}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.danger:hover{background:var(--danger-bg)}
+.btn[disabled],a.btn.off{color:#a3a9b3;background:#f6f7f9;cursor:default;pointer-events:none}
+a.btn{text-decoration:none;display:inline-block}
+
+header{position:sticky;top:0;z-index:5;background:rgba(244,245,248,.95);backdrop-filter:blur(6px);
+  margin:0 -16px;padding:12px 16px;border-bottom:1px solid var(--border)}
+header .in{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;flex:1;min-width:200px}
+header h1 small{font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
+.stamp{font-size:12.5px;color:var(--muted)}
+
+.login{max-width:360px;margin:12vh auto 0;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
+.login h2{font-size:17px;margin:0 0 4px}
+.login p{font-size:13px;color:var(--muted);margin:0 0 16px}
+.login label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+.login input{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:#fff}
+.login .btn{width:100%;margin-top:16px;padding:10px}
+.err{color:var(--danger);font-size:13px;margin-top:10px;min-height:1em}
+
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0 12px;font-size:13.5px}
+.filters select{padding:6px 9px;border:1px solid var(--border);border-radius:8px;background:#fff}
+.filters label{display:flex;align-items:center;gap:5px;color:var(--muted)}
+.summary{font-size:13px;color:var(--muted);margin-left:auto}
+
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin:0 0 10px;overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;flex-wrap:wrap}
+.who{min-width:170px;flex:1}
+.who b{font-size:15.5px}
+.who .meta{font-size:12.5px;color:var(--muted)}
+.chip{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+.chip.year{background:var(--accent-bg);color:var(--accent-ink)}
+.chip.new{background:#fee2e2;color:#b91c1c}
+.chip.old{background:#f1f2f5;color:var(--muted);font-weight:600}
+.n{font-weight:800;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.n small{font-weight:500;color:var(--muted);font-size:12px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.detail{display:none;border-top:1px solid var(--border);padding:4px 14px 14px;overflow-x:auto}
+.card.open .detail{display:block}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:8px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid #eef0f3;vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}
+td.w{font-weight:700;white-space:nowrap}
+td.w span{background:var(--mark-bg);border-radius:4px;padding:0 3px}
+td.cx{color:#374151}
+td.src{color:var(--muted);font-size:12px;white-space:nowrap}
+.empty{text-align:center;color:var(--muted);padding:50px 0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;
+  padding:8px 16px;border-radius:8px;font-size:13.5px;display:none;z-index:20}
+@media(max-width:600px){
+  .n{text-align:left;min-width:0}
+  .acts{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div id="loginView" style="display:none">
+  <form class="login" id="loginForm">
+    <h2>标记单词结果 · 老师登录</h2>
+    <p>查看学生在 Look for unfamiliar words 页面上标记、提交的生词。</p>
+    <label for="email">邮箱</label>
+    <input id="email" type="email" autocomplete="username" required>
+    <label for="pw">密码</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <button class="btn primary" type="submit" id="loginBtn">登录</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</div>
+
+<div id="mainView" style="display:none">
+  <header><div class="in">
+    <h1>标记单词结果<small>Look for unfamiliar words</small></h1>
+    <span class="stamp" id="stamp"></span>
+    <button class="btn" id="reloadBtn">刷新</button>
+    <button class="btn" id="logoutBtn">退出登录</button>
+  </div></header>
+  <div class="wrap">
+    <div class="filters">
+      <select id="fStu"><option value="">全部学生</option></select>
+      <select id="fTask"><option value="">全部考试 / 文本</option></select>
+      <select id="fYear"><option value="">全部试卷</option></select>
+      <label><input type="checkbox" id="fLatest" checked> 每人每套只看最新一份</label>
+      <span class="summary" id="summary"></span>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+  var SB_URL = 'https://br-hip-mole-120d4f76.supabase.aidap-global.cn-beijing.volces.com';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1wbGF0Zm9ybSIsInJvbGUiOiJhbm9uIiwiZXhwIjozNjg5MzA2NDQxfQ.d61XnlrSWM015kQJaJwllNc8qSpUTLNR9reQW99a644';
+  var TASK_SUFFIX = '标生词';
+  var TEACHER_EMAIL = 'la5uriv@gmail.com';
+  var RT_KEY = 'kyvocab_rt', SEEN_KEY = 'kyvocab_seen';
+
+  var $ = function(id){ return document.getElementById(id); };
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k, v){ try{ if(v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function toast(t){ var el = $('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(toast._h); toast._h = setTimeout(function(){ el.style.display = 'none'; }, 2200); }
+  function fmt(iso){ var d = new Date(iso); return (d.getMonth()+1) + '月' + d.getDate() + '日 ' + d.toTimeString().slice(0,5); }
+
+  /* ---------- 登录（Supabase Auth，直接用 REST 接口） ---------- */
+  var token = null, tokenExp = 0;
+  async function auth(grant, body){
+    var r = await fetch(SB_URL + '/auth/v1/token?grant_type=' + grant, {
+      method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    var j = await r.json().catch(function(){ return {}; });
+    if(!r.ok) throw new Error(j.error_description || j.msg || j.message || ('登录失败 ' + r.status));
+    token = j.access_token;
+    tokenExp = Date.now() + (j.expires_in || 3600) * 1000 - 60000;
+    lsSet(RT_KEY, j.refresh_token);
+  }
+  async function ensureToken(){
+    if(token && Date.now() < tokenExp) return;
+    var rt = lsGet(RT_KEY);
+    if(!rt) throw new Error('need-login');
+    try{ await auth('refresh_token', { refresh_token: rt }); }
+    catch(e){ lsSet(RT_KEY, null); throw new Error('need-login'); }
+  }
+  async function api(path, opt){
+    await ensureToken();
+    opt = opt || {};
+    var r = await fetch(SB_URL + '/rest/v1/' + path, Object.assign({}, opt, {
+      headers: Object.assign({ apikey: SB_KEY, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, opt.headers || {})
+    }));
+    if(r.status === 401){ token = null; lsSet(RT_KEY, null); throw new Error('need-login'); }
+    if(!r.ok) throw new Error(r.status + ' ' + (await r.text()).slice(0, 200));
+    var t = await r.text();
+    return t ? JSON.parse(t) : null;
+  }
+
+  function showLogin(msg){
+    $('mainView').style.display = 'none';
+    $('loginView').style.display = 'block';
+    $('email').value = $('email').value || TEACHER_EMAIL;
+    $('loginErr').textContent = msg || '';
+    stopTimer();
+  }
+  $('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    $('loginBtn').disabled = true; $('loginErr').textContent = '';
+    try{
+      await auth('password', { email: $('email').value.trim(), password: $('pw').value });
+      $('pw').value = '';
+      start();
+    }catch(err){
+      $('loginErr').textContent = /invalid/i.test(err.message) ? '邮箱或密码不对' : err.message;
+    }finally{ $('loginBtn').disabled = false; }
+  });
+  $('logoutBtn').onclick = function(){ token = null; lsSet(RT_KEY, null); rows = []; showLogin(); };
+
+  /* ---------- 数据 ---------- */
+  var rows = [], openIds = new Set(), seenAt = lsGet(SEEN_KEY) || '', timer = null;
+  function stopTimer(){ clearInterval(timer); timer = null; }
+
+  async function load(quiet){
+    try{
+      rows = await api('submissions?select=id,student_name,task_type,set_num,status,answers,grading,updated_at' +
+        '&task_type=like.*' + encodeURIComponent(TASK_SUFFIX) + '&order=updated_at.desc&limit=2000') || [];
+      $('stamp').textContent = '更新于 ' + new Date().toTimeString().slice(0,5) + ' · 每 30 秒自动刷新';
+      render();
+    }catch(e){
+      if(e.message === 'need-login') return showLogin('登录已过期，请重新登录');
+      if(!quiet) toast('读取失败：' + e.message);
+      $('stamp').textContent = '⚠ 读取失败，稍后自动重试';
+    }
+  }
+
+  function items(r){ return (r.answers && r.answers.items) || []; }
+  function files(r){ return (r.grading && r.grading.files) || {}; }
+
+  /* 学生编号从 2026-09-23 起是「缩写+月日时分」，每交一次都不同。分组只认字母缩写，
+     否则同一个人每交一次就多出一个“学生”，「只看最新一份」也会失效。卡片上仍显示完整编号。 */
+  function stuOf(r){ var m = String(r.student_name || '').match(/^[A-Za-z]+/); return m ? m[0].toUpperCase() : String(r.student_name || ''); }
+  function visible(){
+    var stu = $('fStu').value, task = $('fTask').value, yr = $('fYear').value, latest = $('fLatest').checked;
+    var seen = new Set();
+    return rows.filter(function(r){
+      if(stu && stuOf(r) !== stu) return false;
+      if(task && r.task_type !== task) return false;
+      if(yr && String(r.set_num) !== yr) return false;
+      if(latest){
+        var k = stuOf(r) + '|' + r.task_type + '|' + r.set_num;
+        if(seen.has(k)) return false;
+        seen.add(k);
+      }
+      return true;
+    });
+  }
+
+  function fillSelect(sel, values, label){
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">' + label + '</option>' + values.map(function(v){
+      return '<option' + (String(v) === cur ? ' selected' : '') + '>' + esc(v) + '</option>';
+    }).join('');
+  }
+
+  function render(){
+    fillSelect($('fStu'), Array.from(new Set(rows.map(stuOf))).sort(), '全部学生');
+    fillSelect($('fTask'), Array.from(new Set(rows.map(function(r){ return r.task_type; }))).sort(), '全部考试 / 文本');
+    fillSelect($('fYear'), Array.from(new Set(rows.map(function(r){ return r.set_num; }))).sort(function(a,b){ return b-a; }), '全部试卷');
+    var list = visible();
+    var newCount = rows.filter(function(r){ return seenAt && r.updated_at > seenAt; }).length;
+    document.title = (newCount ? '(' + newCount + ' 新) ' : '') + '标记单词结果 · 老师登录版本';
+    $('summary').textContent = '共 ' + list.length + ' 份' + (newCount ? '，其中 ' + newCount + ' 份是上次查看后新交的' : '');
+
+    // 同一学生同一套卷子交了几次、这是第几次
+    var counts = {}, order = {};
+    rows.slice().reverse().forEach(function(r){
+      var k = stuOf(r) + '|' + r.task_type + '|' + r.set_num;
+      counts[k] = (counts[k] || 0) + 1; order[r.id] = counts[k];
+    });
+
+    if(!list.length){
+      $('list').innerHTML = '<div class="empty">' + (rows.length ? '没有符合筛选条件的记录' : '还没有学生提交。学生在试卷页面上点「提交」→「发送给老师」后，会出现在这里。') + '</div>';
+      return;
+    }
+    $('list').innerHTML = list.map(function(r){
+      var its = items(r), f = files(r), k = stuOf(r) + '|' + r.task_type + '|' + r.set_num;
+      var isNew = seenAt && r.updated_at > seenAt;
+      var nth = counts[k] > 1 ? '<span class="chip old">第 ' + order[r.id] + '/' + counts[k] + ' 次提交</span>' : '';
+      var link = function(url, text){ return url ? '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">' + text + '</a>' : '<a class="btn off" title="第四步自动查词接通后才会有">' + text + '（待生成）</a>'; };
+      return '<div class="card' + (openIds.has(r.id) ? ' open' : '') + '" data-id="' + esc(r.id) + '">' +
+        '<div class="row">' +
+          '<div class="who"><b>' + esc(r.student_name) + '</b><span class="chip year">' + esc(r.task_type) + ' · ' + esc(r.set_num) + '</span>' +
+            (isNew ? '<span class="chip new">新</span>' : '') + nth +
+            '<div class="meta">' + fmt(r.updated_at) + ' 提交</div></div>' +
+          '<div class="n">' + its.length + ' <small>条</small></div>' +
+          '<div class="acts">' +
+            '<button class="btn" data-act="view">' + (openIds.has(r.id) ? '收起' : '查看') + '</button>' +
+            '<button class="btn" data-act="txt">下载 TXT</button>' +
+            '<button class="btn" data-act="md">复制 Markdown</button>' +
+            link(f.pdf, 'PDF') + link(f.anki, 'Anki') +
+            '<button class="btn danger" data-act="del">删除</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="detail">' + (openIds.has(r.id) ? detailHtml(r) : '') + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function detailHtml(r){
+    var its = items(r);
+    if(!its.length) return '<p class="stamp">这份提交里没有生词。</p>';
+    return '<table><thead><tr><th>#</th><th>生词 / 短语</th><th>原句</th><th>出处</th></tr></thead><tbody>' +
+      its.map(function(it, i){
+        return '<tr><td>' + (i+1) + '</td><td class="w"><span>' + esc(it.text) + '</span></td><td class="cx">' + esc(it.context) + '</td><td class="src">' + esc(it.where) + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function txtOf(r){ return items(r).map(function(it){ return it.text; }).join('\r\n') + '\r\n'; }
+  function mdOf(r){
+    var cell = function(s){ return String(s || '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim(); };
+    return '| 序号 | 生词/短语 | 原句 | 出处 |\n| --- | --- | --- | --- |\n' +
+      items(r).map(function(it, i){ return '| ' + (i+1) + ' | ' + cell(it.text) + ' | ' + cell(it.context) + ' | ' + cell(it.where) + ' |'; }).join('\n');
+  }
+  function download(name, text){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+  async function copy(text){
+    try{ await navigator.clipboard.writeText(text); return true; }
+    catch(e){
+      var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      var ok = false; try{ ok = document.execCommand('copy'); }catch(e2){}
+      ta.remove(); return ok;
+    }
+  }
+
+  $('list').addEventListener('click', async function(e){
+    var b = e.target.closest('button[data-act]');
+    if(!b) return;
+    var id = b.closest('.card').dataset.id;
+    var r = rows.find(function(x){ return x.id === id; });
+    if(!r) return;
+    var act = b.dataset.act;
+    if(act === 'view'){ if(openIds.has(id)) openIds.delete(id); else openIds.add(id); render(); }
+    else if(act === 'txt'){ download(r.student_name + '-' + r.set_num + '.txt', txtOf(r)); }
+    else if(act === 'md'){ toast(await copy(mdOf(r)) ? '已复制 Markdown 表格，可以直接粘贴进飞书' : '复制失败，请换 Chrome/Edge 再试'); }
+    else if(act === 'del'){
+      if(!confirm('确定删除 ' + r.student_name + ' 的 ' + r.task_type + ' · ' + r.set_num + ' 这份提交吗？删除后无法恢复。')) return;
+      try{
+        await api('submissions?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+        rows = rows.filter(function(x){ return x.id !== id; }); render(); toast('已删除');
+      }catch(err){ toast('删除失败：' + err.message); }
+    }
+  });
+  ['fStu','fTask','fYear','fLatest'].forEach(function(id){ $(id).addEventListener('change', render); });
+  $('reloadBtn').onclick = function(){ load(false); };
+
+  // 离开页面时记下"已看到这里"，下次打开时之后新交的会标「新」
+  function markSeen(){ if(rows.length) lsSet(SEEN_KEY, rows[0].updated_at); }
+  window.addEventListener('pagehide', markSeen);
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'hidden') markSeen(); });
+
+  async function start(){
+    $('loginView').style.display = 'none';
+    $('mainView').style.display = 'block';
+    await load(false);
+    stopTimer();
+    timer = setInterval(function(){ if(document.visibilityState === 'visible') load(true); }, 30000);
+  }
+
+  if(lsGet(RT_KEY)) start(); else showLogin();
+})();
+</script>
+</body>
+</html>
